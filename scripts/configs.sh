@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# 🚀 Configuration deployment script
-
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,11 +7,9 @@ HELPERS_DIR="$SCRIPT_DIR/helpers"
 DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
 CONFIG_DIR="$DOTFILES_DIR/config"
 
-# Load helper functions
 source "$HELPERS_DIR/print.sh"
 source "$HELPERS_DIR/config.sh"
 
-# Main configuration setup
 setup_configs() {
     print_info "Deploying dotfiles... 📦"
     
@@ -47,7 +43,7 @@ setup_configs() {
     fi
     
     print_success "Configurations deployed successfully!"
-    print_warning "Configs were COPIED (not symlinked)"
+    print_warning "Configs were COPIED"
     print_warning "To update, edit files in repo and run 'make install-configs' again"
 }
 
