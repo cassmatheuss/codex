@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 🔄 Uninstall script - Reverts all Codex dotfiles changes
-# This script removes all installed packages and configurations
+# 🔄 Uninstall script - Removes ALL Codex dotfiles and packages
+# ⚠️  WARNING: This script DESTROYS everything without backup!
 
 set -e
 
@@ -14,124 +14,100 @@ CONFIG_DIR="$SCRIPT_DIR/../config"
 source "$HELPERS_DIR/print.sh"
 source "$HELPERS_DIR/system.sh"
 
-# Backup directory for removed configs
-BACKUP_DIR="$HOME/.codex-backup-$(date +%Y%m%d-%H%M%S)"
-
 # Confirmation prompt
 confirm_uninstall() {
-    print_warning "⚠️  ATENÇÃO: Este script irá:"
-    echo "  • Remover todos os pacotes instalados pelo Codex"
-    echo "  • Remover todas as configurações copiadas"
-    echo "  • Fazer backup das configs em: $BACKUP_DIR"
+    print_error "⚠️  ATENÇÃO EXTREMA: Este script irá:"
+    echo "  • Remover TODOS os pacotes instalados pelo Codex"
+    echo "  • DELETAR PERMANENTEMENTE todas as configurações"
+    echo "  • LIMPAR todo o cache do pacman"
+    echo "  • SEM BACKUP - Tudo será APAGADO DEFINITIVAMENTE!"
     echo ""
-    print_error "Esta ação NÃO pode ser desfeita automaticamente!"
+    print_error "═══════════════════════════════════════════════════"
+    print_error "  ESTA AÇÃO É DESTRUTIVA E IRREVERSÍVEL!  "
+    print_error "═══════════════════════════════════════════════════"
     echo ""
-    read -p "Tem certeza que deseja continuar? (sim/não): " response
+    read -p "Tem ABSOLUTA CERTEZA que deseja DESTRUIR tudo? (DELETAR/não): " response
     
-    if [[ ! "$response" =~ ^[Ss][Ii][Mm]$ ]]; then
+    if [[ ! "$response" == "DELETAR" ]]; then
+        print_info "Uninstall cancelado."
+        exit 0
+    fi
+    
+    print_warning "Última chance! Digite 'SIM TENHO CERTEZA' para continuar:"
+    read -p "> " final_response
+    
+    if [[ ! "$final_response" == "SIM TENHO CERTEZA" ]]; then
         print_info "Uninstall cancelado."
         exit 0
     fi
 }
 
-# Create backup of current configs
-backup_configs() {
-    print_info "Criando backup das configurações... 💾"
-    mkdir -p "$BACKUP_DIR"
-    
-    # Backup Hyprland
-    if [ -d "$HOME/.config/hypr" ]; then
-        cp -r "$HOME/.config/hypr" "$BACKUP_DIR/hypr" 2>/dev/null || true
-        print_success "Backup: ~/.config/hypr"
-    fi
-    
-    # Backup ZSH
-    if [ -f "$HOME/.zshrc" ]; then
-        cp "$HOME/.zshrc" "$BACKUP_DIR/.zshrc" 2>/dev/null || true
-        print_success "Backup: ~/.zshrc"
-    fi
-    
-    if [ -d "$HOME/.config/zsh" ]; then
-        cp -r "$HOME/.config/zsh" "$BACKUP_DIR/zsh" 2>/dev/null || true
-        print_success "Backup: ~/.config/zsh"
-    fi
-    
-    # Backup WezTerm
-    if [ -f "$HOME/.wezterm.lua" ]; then
-        cp "$HOME/.wezterm.lua" "$BACKUP_DIR/.wezterm.lua" 2>/dev/null || true
-        print_success "Backup: ~/.wezterm.lua"
-    fi
-    
-    if [ -d "$HOME/.config/wezterm" ]; then
-        cp -r "$HOME/.config/wezterm" "$BACKUP_DIR/wezterm" 2>/dev/null || true
-        print_success "Backup: ~/.config/wezterm"
-    fi
-    
-    # Backup Dunst
-    if [ -d "$HOME/.config/dunst" ]; then
-        cp -r "$HOME/.config/dunst" "$BACKUP_DIR/dunst" 2>/dev/null || true
-        print_success "Backup: ~/.config/dunst"
-    fi
-    
-    # Backup Wofi
-    if [ -d "$HOME/.config/wofi" ]; then
-        cp -r "$HOME/.config/wofi" "$BACKUP_DIR/wofi" 2>/dev/null || true
-        print_success "Backup: ~/.config/wofi"
-    fi
-    
-    print_success "Backup completo em: $BACKUP_DIR"
-}
-
-# Remove configurations
+# Remove configurations - NO BACKUP
 remove_configs() {
-    print_info "Removendo configurações... 🗑️"
+    print_info "💣 DESTRUINDO configurações sem piedade... 🗑️"
     
     # Remove Hyprland
     if [ -d "$HOME/.config/hypr" ]; then
         rm -rf "$HOME/.config/hypr"
-        print_success "Removido: ~/.config/hypr"
+        print_success "DELETADO: ~/.config/hypr"
     fi
     
     # Remove ZSH
     if [ -f "$HOME/.zshrc" ]; then
         rm -f "$HOME/.zshrc"
-        print_success "Removido: ~/.zshrc"
+        print_success "DELETADO: ~/.zshrc"
     fi
     
     if [ -d "$HOME/.config/zsh" ]; then
         rm -rf "$HOME/.config/zsh"
-        print_success "Removido: ~/.config/zsh"
+        print_success "DELETADO: ~/.config/zsh"
     fi
     
     # Remove WezTerm
     if [ -f "$HOME/.wezterm.lua" ]; then
         rm -f "$HOME/.wezterm.lua"
-        print_success "Removido: ~/.wezterm.lua"
+        print_success "DELETADO: ~/.wezterm.lua"
     fi
     
     if [ -d "$HOME/.config/wezterm" ]; then
         rm -rf "$HOME/.config/wezterm"
-        print_success "Removido: ~/.config/wezterm"
+        print_success "DELETADO: ~/.config/wezterm"
     fi
     
     # Remove Dunst
     if [ -d "$HOME/.config/dunst" ]; then
         rm -rf "$HOME/.config/dunst"
-        print_success "Removido: ~/.config/dunst"
+        print_success "DELETADO: ~/.config/dunst"
     fi
     
     # Remove Wofi
     if [ -d "$HOME/.config/wofi" ]; then
         rm -rf "$HOME/.config/wofi"
-        print_success "Removido: ~/.config/wofi"
+        print_success "DELETADO: ~/.config/wofi"
     fi
     
-    print_success "Configurações removidas!"
+    # Remove any other potential configs
+    if [ -d "$HOME/.config/waybar" ]; then
+        rm -rf "$HOME/.config/waybar"
+        print_success "DELETADO: ~/.config/waybar"
+    fi
+    
+    if [ -d "$HOME/.config/kitty" ]; then
+        rm -rf "$HOME/.config/kitty"
+        print_success "DELETADO: ~/.config/kitty"
+    fi
+    
+    if [ -d "$HOME/.config/alacritty" ]; then
+        rm -rf "$HOME/.config/alacritty"
+        print_success "DELETADO: ~/.config/alacritty"
+    fi
+    
+    print_success "✅ Todas as configurações foram OBLITERADAS!"
 }
 
-# Remove AUR packages
+# Remove AUR packages - FORCE REMOVE
 remove_aur_packages() {
-    print_info "Removendo pacotes do AUR... 📦"
+    print_info "💣 Removendo pacotes do AUR com força bruta... 📦"
     
     if ! command -v yay &> /dev/null && ! command -v paru &> /dev/null; then
         print_warning "Nenhum AUR helper encontrado (yay/paru). Pulando pacotes AUR."
@@ -154,18 +130,30 @@ remove_aur_packages() {
     done < "$PACKAGES_DIR/aur"
     
     if [ ${#packages[@]} -gt 0 ]; then
-        print_info "Removendo: ${packages[*]}"
-        $aur_helper -Rns --noconfirm "${packages[@]}" 2>/dev/null || {
-            print_warning "Alguns pacotes AUR podem não ter sido removidos (já removidos ou não instalados)"
+        print_info "DESTRUINDO: ${packages[*]}"
+        # Force remove with --nodeps --nodeps to ignore dependencies
+        $aur_helper -Rdd --noconfirm "${packages[@]}" 2>/dev/null || {
+            print_warning "Alguns pacotes AUR já foram removidos ou não existem"
         }
     fi
     
-    print_success "Pacotes AUR processados!"
+    # Remove AUR helper itself if installed by us
+    if command -v yay &> /dev/null; then
+        print_info "Removendo yay..."
+        sudo pacman -Rdd --noconfirm yay 2>/dev/null || true
+    fi
+    
+    if command -v paru &> /dev/null; then
+        print_info "Removendo paru..."
+        sudo pacman -Rdd --noconfirm paru 2>/dev/null || true
+    fi
+    
+    print_success "✅ Pacotes AUR ANIQUILADOS!"
 }
 
-# Remove apps packages
+# Remove apps packages - FORCE REMOVE
 remove_apps_packages() {
-    print_info "Removendo aplicações... 📦"
+    print_info "💣 Removendo aplicações com força total... 📦"
     
     # Read app packages
     local packages=()
@@ -178,19 +166,22 @@ remove_apps_packages() {
     done < "$PACKAGES_DIR/apps"
     
     if [ ${#packages[@]} -gt 0 ]; then
-        print_info "Removendo: ${packages[*]}"
+        print_info "DESTRUINDO: ${packages[*]}"
+        # First try with dependencies removal
         sudo pacman -Rns --noconfirm "${packages[@]}" 2>/dev/null || {
-            print_warning "Alguns pacotes podem não ter sido removidos (dependências de outros pacotes ou já removidos)"
+            # If that fails, force remove without dependencies
+            print_warning "Forçando remoção sem dependências..."
+            sudo pacman -Rdd --noconfirm "${packages[@]}" 2>/dev/null || true
         }
     fi
     
-    print_success "Aplicações processadas!"
+    print_success "✅ Aplicações EXTERMINADAS!"
 }
 
-# Remove system packages
+# Remove system packages - FORCE REMOVE
 remove_system_packages() {
-    print_info "Removendo pacotes do sistema... 📦"
-    print_warning "NOTA: Pacotes essenciais do sistema serão mantidos se forem dependências"
+    print_info "💣 Removendo pacotes do sistema sem misericórdia... 📦"
+    print_warning "⚠️  REMOVENDO TUDO, incluindo possíveis dependências críticas!"
     
     # Read system packages
     local packages=()
@@ -203,47 +194,67 @@ remove_system_packages() {
     done < "$PACKAGES_DIR/system"
     
     if [ ${#packages[@]} -gt 0 ]; then
-        print_info "Tentando remover: ${packages[*]}"
+        print_info "ANIQUILANDO: ${packages[*]}"
+        # First try with dependencies
         sudo pacman -Rns --noconfirm "${packages[@]}" 2>/dev/null || {
-            print_warning "Alguns pacotes do sistema não foram removidos (dependências ou já removidos)"
+            # Force remove without checking dependencies
+            print_warning "Forçando remoção brutal..."
+            sudo pacman -Rdd --noconfirm "${packages[@]}" 2>/dev/null || true
         }
     fi
     
-    print_success "Pacotes do sistema processados!"
+    print_success "✅ Pacotes do sistema DEVASTADOS!"
 }
 
-# Uninstall all
+# Uninstall all - NUCLEAR OPTION
 uninstall_all() {
     confirm_uninstall
     
     check_arch
     
-    backup_configs
+    print_error "🔥🔥🔥 INICIANDO DESTRUIÇÃO TOTAL 🔥🔥🔥"
+    
     remove_configs
     remove_aur_packages
     remove_apps_packages
     remove_system_packages
     
-    # Clean pacman cache
-    print_info "Limpando cache do pacman... 🧹"
-    sudo pacman -Sc --noconfirm
+    # Clean ALL pacman cache - no mercy
+    print_info "💣 OBLITERANDO cache do pacman... 🧹"
+    sudo pacman -Scc --noconfirm
     
-    print_success "✅ Uninstall completo!"
-    print_info "Backup das configurações: $BACKUP_DIR"
-    print_warning "Para restaurar: cp -r $BACKUP_DIR/* ~/"
+    # Remove orphaned packages
+    print_info "💣 Removendo pacotes órfãos..."
+    sudo pacman -Qtdq | sudo pacman -Rns --noconfirm - 2>/dev/null || true
+    
+    # Clean up package database
+    print_info "🧹 Limpando banco de dados de pacotes..."
+    sudo pacman-optimize 2>/dev/null || true
+    
+    # Remove old .backup files
+    print_info "🧹 Removendo arquivos .backup..."
+    sudo find /etc -type f -name '*.pacsave' -delete 2>/dev/null || true
+    sudo find /etc -type f -name '*.pacnew' -delete 2>/dev/null || true
+    
+    print_success "════════════════════════════════════════════════"
+    print_success "  ✅ DESTRUIÇÃO COMPLETA E TOTAL! ✅  "
+    print_success "════════════════════════════════════════════════"
+    print_error "Tudo foi OBLITERADO sem piedade!"
+    print_error "Nenhum backup foi criado - tudo foi DELETADO!"
 }
 
-# Uninstall only configs
+# Uninstall only configs - ALSO NO BACKUP
 uninstall_configs() {
-    print_warning "Removendo apenas configurações..."
+    print_error "💣 Removendo APENAS configurações - SEM BACKUP!"
     
-    read -p "Fazer backup antes de remover? (sim/não): " response
-    if [[ "$response" =~ ^[Ss][Ii][Mm]$ ]]; then
-        backup_configs
+    read -p "Tem certeza? Digite 'DELETAR' para confirmar: " response
+    if [[ ! "$response" == "DELETAR" ]]; then
+        print_info "Cancelado."
+        exit 0
     fi
     
     remove_configs
-    print_success "Configurações removidas!"
+    print_success "✅ Configurações DESTRUÍDAS sem piedade!"
 }
 
 # Main
