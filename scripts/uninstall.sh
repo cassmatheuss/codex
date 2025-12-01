@@ -50,15 +50,10 @@ remove_configs() {
         print_success "Removed: ~/.config/zsh"
     fi
     
-    # Remove WezTerm
-    if [ -f "$HOME/.wezterm.lua" ]; then
-        rm -f "$HOME/.wezterm.lua"
-        print_success "Removed: ~/.wezterm.lua"
-    fi
-    
-    if [ -d "$HOME/.config/wezterm" ]; then
-        rm -rf "$HOME/.config/wezterm"
-        print_success "Removed: ~/.config/wezterm"
+    # Remove Kitty
+    if [ -d "$HOME/.config/kitty" ]; then
+        rm -rf "$HOME/.config/kitty"
+        print_success "Removed: ~/.config/kitty"
     fi
     
     # Remove Dunst

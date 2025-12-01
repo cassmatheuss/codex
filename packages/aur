@@ -3,7 +3,7 @@
 # Note: yay/paru will be installed automatically by the script if needed!
 
 # 🖥️ Terminal
-wezterm
+kitty
 
 # 🎨 Themes and icons
 # papirus-icon-theme

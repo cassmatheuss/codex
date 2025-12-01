@@ -31,13 +31,9 @@ setup_configs() {
         copy_config "$CONFIG_DIR/zsh" "$HOME/.config/zsh"
     fi
     
-    # WezTerm
-    if [ -f "$CONFIG_DIR/wezterm/wezterm.lua" ]; then
-        copy_config "$CONFIG_DIR/wezterm/wezterm.lua" "$HOME/.wezterm.lua"
-    fi
-    
-    if [ -d "$CONFIG_DIR/wezterm" ]; then
-        copy_config "$CONFIG_DIR/wezterm" "$HOME/.config/wezterm"
+    # Kitty
+    if [ -d "$CONFIG_DIR/kitty" ]; then
+        copy_config "$CONFIG_DIR/kitty" "$HOME/.config/kitty"
     fi
     
     # Dunst (notifications)

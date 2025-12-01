@@ -28,7 +28,7 @@ main() {
     # Essential components
     check_command "hyprland" "Hyprland"
     check_command "zsh" "ZSH"
-    check_command "wezterm" "WezTerm"
+    check_command "kitty" "Kitty"
     check_command "wofi" "Wofi"
     check_command "dunst" "Dunst"
     
