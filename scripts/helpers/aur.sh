@@ -28,7 +28,11 @@ install_yay() {
 install_paru() {
     print_info "Installing paru... 🚀"
     
-    sudo pacman -S --needed --noconfirm git base-devel
+    # Install dependencies
+    sudo pacman -S --needed --noconfirm git base-devel rust
+    
+    # Clean up any previous installation attempt
+    rm -rf /tmp/paru
     
     cd /tmp
     git clone https://aur.archlinux.org/paru.git
