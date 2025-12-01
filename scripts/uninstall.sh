@@ -131,20 +131,34 @@ remove_aur_packages() {
     
     if [ ${#packages[@]} -gt 0 ]; then
         print_info "DESTRUINDO: ${packages[*]}"
-        # Force remove with --nodeps --nodeps to ignore dependencies
-        $aur_helper -Rdd --noconfirm "${packages[@]}" 2>/dev/null || {
-            print_warning "Alguns pacotes AUR já foram removidos ou não existem"
+        
+        # Try to remove all at once
+        $aur_helper -Rdd --noconfirm "${packages[@]}" 2>/dev/null && {
+            print_success "✅ Removidos todos de uma vez!"
+        } || {
+            # Remove one by one
+            print_warning "Removendo um por um..."
+            for package in "${packages[@]}"; do
+                if pacman -Qi "$package" &>/dev/null; then
+                    print_info "  → Removendo: $package"
+                    $aur_helper -Rdd --noconfirm "$package" 2>/dev/null && {
+                        print_success "    ✓ $package DELETADO!"
+                    } || {
+                        print_error "    ✗ $package não removido"
+                    }
+                fi
+            done
         }
     fi
     
     # Remove AUR helper itself if installed by us
     if command -v yay &> /dev/null; then
-        print_info "Removendo yay..."
+        print_info "💣 Removendo yay..."
         sudo pacman -Rdd --noconfirm yay 2>/dev/null || true
     fi
     
     if command -v paru &> /dev/null; then
-        print_info "Removendo paru..."
+        print_info "💣 Removendo paru..."
         sudo pacman -Rdd --noconfirm paru 2>/dev/null || true
     fi
     
@@ -167,12 +181,32 @@ remove_apps_packages() {
     
     if [ ${#packages[@]} -gt 0 ]; then
         print_info "DESTRUINDO: ${packages[*]}"
+        
         # First try with dependencies removal
-        sudo pacman -Rns --noconfirm "${packages[@]}" 2>/dev/null || {
-            # If that fails, force remove without dependencies
-            print_warning "Forçando remoção sem dependências..."
-            sudo pacman -Rdd --noconfirm "${packages[@]}" 2>/dev/null || true
+        sudo pacman -Rns --noconfirm "${packages[@]}" 2>/dev/null && {
+            print_success "✅ Removidos todos de uma vez!"
+            return 0
         }
+        
+        # If that fails, force remove without dependencies
+        print_warning "Forçando remoção sem dependências..."
+        sudo pacman -Rdd --noconfirm "${packages[@]}" 2>/dev/null && {
+            print_success "✅ Removidos com força!"
+            return 0
+        }
+        
+        # Remove one by one if batch fails
+        print_warning "Removendo um por um..."
+        for package in "${packages[@]}"; do
+            if pacman -Qi "$package" &>/dev/null; then
+                print_info "  → Removendo: $package"
+                sudo pacman -Rdd --noconfirm "$package" 2>/dev/null && {
+                    print_success "    ✓ $package DELETADO!"
+                } || {
+                    print_error "    ✗ $package não removido"
+                }
+            fi
+        done
     fi
     
     print_success "✅ Aplicações EXTERMINADAS!"
@@ -195,12 +229,38 @@ remove_system_packages() {
     
     if [ ${#packages[@]} -gt 0 ]; then
         print_info "ANIQUILANDO: ${packages[*]}"
-        # First try with dependencies
-        sudo pacman -Rns --noconfirm "${packages[@]}" 2>/dev/null || {
-            # Force remove without checking dependencies
-            print_warning "Forçando remoção brutal..."
-            sudo pacman -Rdd --noconfirm "${packages[@]}" 2>/dev/null || true
+        
+        # Try to remove all at once first with dependencies
+        sudo pacman -Rns --noconfirm "${packages[@]}" 2>/dev/null && {
+            print_success "✅ Removidos todos de uma vez!"
+            return 0
         }
+        
+        # If that fails, try force remove all at once
+        print_warning "Tentativa 1 falhou, forçando remoção em lote..."
+        sudo pacman -Rdd --noconfirm "${packages[@]}" 2>/dev/null && {
+            print_success "✅ Removidos com força bruta!"
+            return 0
+        }
+        
+        # If even that fails, remove one by one
+        print_warning "Remoção em lote falhou, removendo um por um..."
+        for package in "${packages[@]}"; do
+            if pacman -Qi "$package" &>/dev/null; then
+                print_info "  → Tentando remover: $package"
+                sudo pacman -Rdd --noconfirm "$package" 2>/dev/null && {
+                    print_success "    ✓ $package DELETADO!"
+                } || {
+                    print_warning "    ✗ $package não pôde ser removido (será tentado com cascade)"
+                    # Try with cascade to remove dependencies too
+                    sudo pacman -Rddsc --noconfirm "$package" 2>/dev/null && {
+                        print_success "    ✓ $package DELETADO com cascade!"
+                    } || {
+                        print_error "    ✗ $package RESISTIU à remoção"
+                    }
+                }
+            fi
+        done
     fi
     
     print_success "✅ Pacotes do sistema DEVASTADOS!"
