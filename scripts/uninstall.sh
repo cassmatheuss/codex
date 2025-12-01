@@ -212,10 +212,29 @@ remove_apps_packages() {
     print_success "✅ Aplicações EXTERMINADAS!"
 }
 
-# Remove system packages - FORCE REMOVE
+# Remove system packages - FORCE REMOVE (but keep essentials)
 remove_system_packages() {
-    print_info "💣 Removendo pacotes do sistema sem misericórdia... 📦"
-    print_warning "⚠️  REMOVENDO TUDO, incluindo possíveis dependências críticas!"
+    print_info "💣 Removendo pacotes do sistema... 📦"
+    print_warning "⚠️  Pacotes ESSENCIAIS serão mantidos para não quebrar o sistema!"
+    
+    # Lista de pacotes críticos que NUNCA devem ser removidos
+    local critical_packages=(
+        "base"
+        "base-devel"
+        "linux"
+        "linux-firmware"
+        "pacman"
+        "systemd"
+        "sudo"
+        "bash"
+        "zsh"
+        "networkmanager"
+        "pipewire"
+        "pipewire-alsa"
+        "pipewire-pulse"
+        "pipewire-jack"
+        "wireplumber"
+    )
     
     # Read system packages
     local packages=()
@@ -224,11 +243,24 @@ remove_system_packages() {
         [[ "$line" =~ ^[[:space:]]*# ]] && continue
         [[ -z "$line" ]] && continue
         
-        packages+=("$line")
+        # Check if package is critical
+        local is_critical=false
+        for critical in "${critical_packages[@]}"; do
+            if [[ "$line" == "$critical" ]]; then
+                is_critical=true
+                print_warning "  ⚠️  MANTIDO (crítico): $line"
+                break
+            fi
+        done
+        
+        # Only add to removal list if not critical
+        if [[ "$is_critical" == false ]]; then
+            packages+=("$line")
+        fi
     done < "$PACKAGES_DIR/system"
     
     if [ ${#packages[@]} -gt 0 ]; then
-        print_info "ANIQUILANDO: ${packages[*]}"
+        print_info "REMOVENDO: ${packages[*]}"
         
         # Try to remove all at once first with dependencies
         sudo pacman -Rns --noconfirm "${packages[@]}" 2>/dev/null && {
@@ -261,9 +293,11 @@ remove_system_packages() {
                 }
             fi
         done
+    else
+        print_warning "Todos os pacotes do sistema são críticos - nada foi removido!"
     fi
     
-    print_success "✅ Pacotes do sistema DEVASTADOS!"
+    print_success "✅ Pacotes não-essenciais removidos! Sistema mantido funcional."
 }
 
 # Uninstall all - NUCLEAR OPTION
