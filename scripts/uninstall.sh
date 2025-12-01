@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 🔄 Uninstall script - Removes ALL Codex dotfiles and packages
-# ⚠️  WARNING: This script DESTROYS everything without backup!
+# 🔄 Uninstall script - Removes Codex dotfiles and packages safely
+# ⚠️  WARNING: This will remove configurations and packages
 
 set -e
 
@@ -16,101 +16,72 @@ source "$HELPERS_DIR/system.sh"
 
 # Confirmation prompt
 confirm_uninstall() {
-    print_error "⚠️  ATENÇÃO EXTREMA: Este script irá:"
-    echo "  • Remover TODOS os pacotes instalados pelo Codex"
-    echo "  • DELETAR PERMANENTEMENTE todas as configurações"
-    echo "  • LIMPAR todo o cache do pacman"
-    echo "  • SEM BACKUP - Tudo será APAGADO DEFINITIVAMENTE!"
+    print_warning "⚠️  This script will:"
+    echo "  • Remove packages installed by Codex (safely)"
+    echo "  • Delete dotfile configurations"
+    echo "  • Keep critical system packages intact"
     echo ""
-    print_error "═══════════════════════════════════════════════════"
-    print_error "  ESTA AÇÃO É DESTRUTIVA E IRREVERSÍVEL!  "
-    print_error "═══════════════════════════════════════════════════"
-    echo ""
-    read -p "Tem ABSOLUTA CERTEZA que deseja DESTRUIR tudo? (DELETAR/não): " response
+    read -p "Continue? (yes/no): " response
     
-    if [[ ! "$response" == "DELETAR" ]]; then
-        print_info "Uninstall cancelado."
-        exit 0
-    fi
-    
-    print_warning "Última chance! Digite 'SIM TENHO CERTEZA' para continuar:"
-    read -p "> " final_response
-    
-    if [[ ! "$final_response" == "SIM TENHO CERTEZA" ]]; then
-        print_info "Uninstall cancelado."
+    if [[ ! "$response" == "yes" ]]; then
+        print_info "Uninstall cancelled."
         exit 0
     fi
 }
 
 # Remove configurations - NO BACKUP
 remove_configs() {
-    print_info "💣 DESTRUINDO configurações sem piedade... 🗑️"
+    print_info "Removing configurations..."
     
     # Remove Hyprland
     if [ -d "$HOME/.config/hypr" ]; then
         rm -rf "$HOME/.config/hypr"
-        print_success "DELETADO: ~/.config/hypr"
+        print_success "Removed: ~/.config/hypr"
     fi
     
     # Remove ZSH
     if [ -f "$HOME/.zshrc" ]; then
         rm -f "$HOME/.zshrc"
-        print_success "DELETADO: ~/.zshrc"
+        print_success "Removed: ~/.zshrc"
     fi
     
     if [ -d "$HOME/.config/zsh" ]; then
         rm -rf "$HOME/.config/zsh"
-        print_success "DELETADO: ~/.config/zsh"
+        print_success "Removed: ~/.config/zsh"
     fi
     
     # Remove WezTerm
     if [ -f "$HOME/.wezterm.lua" ]; then
         rm -f "$HOME/.wezterm.lua"
-        print_success "DELETADO: ~/.wezterm.lua"
+        print_success "Removed: ~/.wezterm.lua"
     fi
     
     if [ -d "$HOME/.config/wezterm" ]; then
         rm -rf "$HOME/.config/wezterm"
-        print_success "DELETADO: ~/.config/wezterm"
+        print_success "Removed: ~/.config/wezterm"
     fi
     
     # Remove Dunst
     if [ -d "$HOME/.config/dunst" ]; then
         rm -rf "$HOME/.config/dunst"
-        print_success "DELETADO: ~/.config/dunst"
+        print_success "Removed: ~/.config/dunst"
     fi
     
     # Remove Wofi
     if [ -d "$HOME/.config/wofi" ]; then
         rm -rf "$HOME/.config/wofi"
-        print_success "DELETADO: ~/.config/wofi"
+        print_success "Removed: ~/.config/wofi"
     fi
     
-    # Remove any other potential configs
-    if [ -d "$HOME/.config/waybar" ]; then
-        rm -rf "$HOME/.config/waybar"
-        print_success "DELETADO: ~/.config/waybar"
-    fi
-    
-    if [ -d "$HOME/.config/kitty" ]; then
-        rm -rf "$HOME/.config/kitty"
-        print_success "DELETADO: ~/.config/kitty"
-    fi
-    
-    if [ -d "$HOME/.config/alacritty" ]; then
-        rm -rf "$HOME/.config/alacritty"
-        print_success "DELETADO: ~/.config/alacritty"
-    fi
-    
-    print_success "✅ Todas as configurações foram OBLITERADAS!"
+    print_success "✅ Configurations removed!"
 }
 
-# Remove AUR packages - FORCE REMOVE
+# Remove AUR packages - SAFE REMOVAL
 remove_aur_packages() {
-    print_info "💣 Removendo pacotes do AUR com força bruta... 📦"
+    print_info "Removing AUR packages..."
     
     if ! command -v yay &> /dev/null && ! command -v paru &> /dev/null; then
-        print_warning "Nenhum AUR helper encontrado (yay/paru). Pulando pacotes AUR."
+        print_warning "No AUR helper found (yay/paru). Skipping AUR packages."
         return 0
     fi
     
@@ -130,44 +101,26 @@ remove_aur_packages() {
     done < "$PACKAGES_DIR/aur"
     
     if [ ${#packages[@]} -gt 0 ]; then
-        print_info "DESTRUINDO: ${packages[*]}"
+        print_info "Removing: ${packages[*]}"
         
-        # Try to remove all at once
-        $aur_helper -Rdd --noconfirm "${packages[@]}" 2>/dev/null && {
-            print_success "✅ Removidos todos de uma vez!"
-        } || {
-            # Remove one by one
-            print_warning "Removendo um por um..."
-            for package in "${packages[@]}"; do
-                if pacman -Qi "$package" &>/dev/null; then
-                    print_info "  → Removendo: $package"
-                    $aur_helper -Rdd --noconfirm "$package" 2>/dev/null && {
-                        print_success "    ✓ $package DELETADO!"
-                    } || {
-                        print_error "    ✗ $package não removido"
-                    }
-                fi
-            done
-        }
+        for package in "${packages[@]}"; do
+            if pacman -Qi "$package" &>/dev/null; then
+                print_info "  → Removing: $package"
+                $aur_helper -Rns --noconfirm "$package" 2>/dev/null && {
+                    print_success "    ✓ $package removed"
+                } || {
+                    print_warning "    ✗ Failed to remove $package (may be a dependency)"
+                }
+            fi
+        done
     fi
     
-    # Remove AUR helper itself if installed by us
-    if command -v yay &> /dev/null; then
-        print_info "💣 Removendo yay..."
-        sudo pacman -Rdd --noconfirm yay 2>/dev/null || true
-    fi
-    
-    if command -v paru &> /dev/null; then
-        print_info "💣 Removendo paru..."
-        sudo pacman -Rdd --noconfirm paru 2>/dev/null || true
-    fi
-    
-    print_success "✅ Pacotes AUR ANIQUILADOS!"
+    print_success "✅ AUR packages processed!"
 }
 
-# Remove apps packages - FORCE REMOVE
+# Remove apps packages - SAFE REMOVAL
 remove_apps_packages() {
-    print_info "💣 Removendo aplicações com força total... 📦"
+    print_info "Removing app packages..."
     
     # Read app packages
     local packages=()
@@ -180,44 +133,29 @@ remove_apps_packages() {
     done < "$PACKAGES_DIR/apps"
     
     if [ ${#packages[@]} -gt 0 ]; then
-        print_info "DESTRUINDO: ${packages[*]}"
+        print_info "Removing: ${packages[*]}"
         
-        # First try with dependencies removal
-        sudo pacman -Rns --noconfirm "${packages[@]}" 2>/dev/null && {
-            print_success "✅ Removidos todos de uma vez!"
-            return 0
-        }
-        
-        # If that fails, force remove without dependencies
-        print_warning "Forçando remoção sem dependências..."
-        sudo pacman -Rdd --noconfirm "${packages[@]}" 2>/dev/null && {
-            print_success "✅ Removidos com força!"
-            return 0
-        }
-        
-        # Remove one by one if batch fails
-        print_warning "Removendo um por um..."
         for package in "${packages[@]}"; do
             if pacman -Qi "$package" &>/dev/null; then
-                print_info "  → Removendo: $package"
-                sudo pacman -Rdd --noconfirm "$package" 2>/dev/null && {
-                    print_success "    ✓ $package DELETADO!"
+                print_info "  → Removing: $package"
+                sudo pacman -Rns --noconfirm "$package" 2>/dev/null && {
+                    print_success "    ✓ $package removed"
                 } || {
-                    print_error "    ✗ $package não removido"
+                    print_warning "    ✗ Failed to remove $package (may be a dependency)"
                 }
             fi
         done
     fi
     
-    print_success "✅ Aplicações EXTERMINADAS!"
+    print_success "✅ App packages processed!"
 }
 
-# Remove system packages - FORCE REMOVE (but keep essentials)
+# Remove system packages - VERY SAFE (keeps critical packages)
 remove_system_packages() {
-    print_info "💣 Removendo pacotes do sistema... 📦"
-    print_warning "⚠️  Pacotes ESSENCIAIS serão mantidos para não quebrar o sistema!"
+    print_info "Removing system packages..."
+    print_warning "⚠️  Critical packages will be KEPT to maintain system stability!"
     
-    # Lista de pacotes críticos que NUNCA devem ser removidos
+    # Critical packages that should NEVER be removed
     local critical_packages=(
         "base"
         "base-devel"
@@ -228,12 +166,20 @@ remove_system_packages() {
         "sudo"
         "bash"
         "zsh"
+        "zsh-completions"
         "networkmanager"
+        "network-manager-applet"
         "pipewire"
         "pipewire-alsa"
         "pipewire-pulse"
         "pipewire-jack"
         "wireplumber"
+        "git"
+        "curl"
+        "wget"
+        "xdg-desktop-portal-hyprland"
+        "qt5-wayland"
+        "qt6-wayland"
     )
     
     # Read system packages
@@ -248,7 +194,7 @@ remove_system_packages() {
         for critical in "${critical_packages[@]}"; do
             if [[ "$line" == "$critical" ]]; then
                 is_critical=true
-                print_warning "  ⚠️  MANTIDO (crítico): $line"
+                print_warning "  ⚠️  KEPT (critical): $line"
                 break
             fi
         done
@@ -260,95 +206,67 @@ remove_system_packages() {
     done < "$PACKAGES_DIR/system"
     
     if [ ${#packages[@]} -gt 0 ]; then
-        print_info "REMOVENDO: ${packages[*]}"
+        print_info "Removing: ${packages[*]}"
         
-        # Try to remove all at once first with dependencies
-        sudo pacman -Rns --noconfirm "${packages[@]}" 2>/dev/null && {
-            print_success "✅ Removidos todos de uma vez!"
-            return 0
-        }
-        
-        # If that fails, try force remove all at once
-        print_warning "Tentativa 1 falhou, forçando remoção em lote..."
-        sudo pacman -Rdd --noconfirm "${packages[@]}" 2>/dev/null && {
-            print_success "✅ Removidos com força bruta!"
-            return 0
-        }
-        
-        # If even that fails, remove one by one
-        print_warning "Remoção em lote falhou, removendo um por um..."
         for package in "${packages[@]}"; do
             if pacman -Qi "$package" &>/dev/null; then
-                print_info "  → Tentando remover: $package"
-                sudo pacman -Rdd --noconfirm "$package" 2>/dev/null && {
-                    print_success "    ✓ $package DELETADO!"
+                print_info "  → Removing: $package"
+                sudo pacman -Rns --noconfirm "$package" 2>/dev/null && {
+                    print_success "    ✓ $package removed"
                 } || {
-                    print_warning "    ✗ $package não pôde ser removido (será tentado com cascade)"
-                    # Try with cascade to remove dependencies too
-                    sudo pacman -Rddsc --noconfirm "$package" 2>/dev/null && {
-                        print_success "    ✓ $package DELETADO com cascade!"
-                    } || {
-                        print_error "    ✗ $package RESISTIU à remoção"
-                    }
+                    print_warning "    ✗ Failed to remove $package (may be a dependency)"
                 }
             fi
         done
     else
-        print_warning "Todos os pacotes do sistema são críticos - nada foi removido!"
+        print_info "All system packages are critical - nothing removed!"
     fi
     
-    print_success "✅ Pacotes não-essenciais removidos! Sistema mantido funcional."
+    print_success "✅ System packages processed safely!"
 }
 
-# Uninstall all - NUCLEAR OPTION
+# Uninstall all - SAFE VERSION
 uninstall_all() {
     confirm_uninstall
     
     check_arch
     
-    print_error "🔥🔥🔥 INICIANDO DESTRUIÇÃO TOTAL 🔥🔥🔥"
+    print_info "Starting uninstall process..."
     
     remove_configs
     remove_aur_packages
     remove_apps_packages
     remove_system_packages
     
-    # Clean ALL pacman cache - no mercy
-    print_info "💣 OBLITERANDO cache do pacman... 🧹"
-    sudo pacman -Scc --noconfirm
+    # Clean pacman cache (optional)
+    print_info "Cleaning pacman cache..."
+    sudo pacman -Sc --noconfirm
     
-    # Remove orphaned packages
-    print_info "💣 Removendo pacotes órfãos..."
-    sudo pacman -Qtdq | sudo pacman -Rns --noconfirm - 2>/dev/null || true
-    
-    # Clean up package database
-    print_info "🧹 Limpando banco de dados de pacotes..."
-    sudo pacman-optimize 2>/dev/null || true
-    
-    # Remove old .backup files
-    print_info "🧹 Removendo arquivos .backup..."
-    sudo find /etc -type f -name '*.pacsave' -delete 2>/dev/null || true
-    sudo find /etc -type f -name '*.pacnew' -delete 2>/dev/null || true
+    # Remove orphaned packages (safe)
+    print_info "Removing orphaned packages..."
+    orphans=$(pacman -Qtdq 2>/dev/null)
+    if [ -n "$orphans" ]; then
+        sudo pacman -Rns --noconfirm $orphans 2>/dev/null || true
+    fi
     
     print_success "════════════════════════════════════════════════"
-    print_success "  ✅ DESTRUIÇÃO COMPLETA E TOTAL! ✅  "
+    print_success "  ✅ Uninstall completed safely! ✅  "
     print_success "════════════════════════════════════════════════"
-    print_error "Tudo foi OBLITERADO sem piedade!"
-    print_error "Nenhum backup foi criado - tudo foi DELETADO!"
+    print_info "System critical packages were kept intact."
 }
 
-# Uninstall only configs - ALSO NO BACKUP
+# Uninstall only configs
 uninstall_configs() {
-    print_error "💣 Removendo APENAS configurações - SEM BACKUP!"
+    print_info "Removing only configurations..."
     
-    read -p "Tem certeza? Digite 'DELETAR' para confirmar: " response
-    if [[ ! "$response" == "DELETAR" ]]; then
-        print_info "Cancelado."
+    read -p "Continue? (yes/no): " response
+    if [[ ! "$response" == "yes" ]]; then
+        print_info "Cancelled."
         exit 0
     fi
     
     remove_configs
-    print_success "✅ Configurações DESTRUÍDAS sem piedade!"
+    print_success "✅ Configurations removed!"
 }
 
 # Main
@@ -363,8 +281,8 @@ main() {
         *)
             print_error "Usage: $0 [all|configs]"
             echo ""
-            echo "  all      - Remove tudo (pacotes + configs)"
-            echo "  configs  - Remove apenas configs (mantém pacotes)"
+            echo "  all      - Remove packages + configs (safely)"
+            echo "  configs  - Remove only configs (keep packages)"
             exit 1
             ;;
     esac
