@@ -29,7 +29,7 @@ confirm_uninstall() {
     fi
 }
 
-# Remove configurations - NO BACKUP
+# Remove configurations
 remove_configs() {
     print_info "Removing configurations..."
     

@@ -36,12 +36,12 @@ setup_configs() {
         copy_config "$CONFIG_DIR/kitty" "$HOME/.config/kitty"
     fi
     
-    # Dunst (notifications)
+    # Dunst
     if [ -d "$CONFIG_DIR/dunst" ]; then
         copy_config "$CONFIG_DIR/dunst" "$HOME/.config/dunst"
     fi
-    
-    # Wofi (launcher)
+
+    # Wofi
     if [ -d "$CONFIG_DIR/wofi" ]; then
         copy_config "$CONFIG_DIR/wofi" "$HOME/.config/wofi"
     fi
