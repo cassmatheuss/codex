@@ -49,3 +49,11 @@ clean: ## Remove arquivos temporários
 check: ## Verifica dependências e configurações
 	@echo "$(YELLOW)Verificando sistema...$(NC)"
 	@bash $(SCRIPTS_DIR)/check.sh
+
+uninstall: ## Remove TUDO (pacotes + configs) - CUIDADO!
+	@echo "$(RED)⚠️  Removendo instalação Codex...$(NC)"
+	@bash $(SCRIPTS_DIR)/uninstall.sh all
+
+uninstall-configs: ## Remove apenas as configurações
+	@echo "$(YELLOW)Removendo configurações...$(NC)"
+	@bash $(SCRIPTS_DIR)/uninstall.sh configs
