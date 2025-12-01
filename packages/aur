@@ -1,0 +1,18 @@
+# 📦 AUR Packages (Arch User Repository)
+# Install with yay or paru
+# Note: yay/paru will be installed automatically by the script if needed!
+
+# 🖥️ Terminal
+wezterm
+
+# 🎨 Themes and icons
+# papirus-icon-theme
+
+# 🛠️ Tools
+# spotify
+# discord
+# visual-studio-code-bin
+
+# ✨ Hyprland extras
+# hyprpicker
+# hyprshot

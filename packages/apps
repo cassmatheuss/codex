@@ -1,0 +1,42 @@
+# 🎯 User applications and tools
+
+# 🌐 Browsers
+firefox
+
+# ✏️ Editors
+neovim
+vim
+
+# 💻 Development
+python
+python-pip
+nodejs
+npm
+
+# 🔧 Terminal utilities
+htop
+btop
+fastfetch
+tree
+ranger
+fzf
+ripgrep
+fd
+bat
+eza
+
+# 🎬 Media
+mpv
+imv
+
+# 📚 Documentation
+man-db
+man-pages
+
+# 📦 Compression
+p7zip
+unrar
+
+# 🛠️ System tools
+lshw
+dmidecode

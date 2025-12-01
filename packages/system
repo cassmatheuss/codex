@@ -1,0 +1,53 @@
+# 🔧 Essential system packages
+
+# 🖼️ Compositor and display
+hyprland
+xdg-desktop-portal-hyprland
+qt5-wayland
+qt6-wayland
+
+# 💻 Terminal and shell
+zsh
+zsh-completions
+
+# 📁 File system and utilities
+base-devel
+git
+curl
+wget
+unzip
+zip
+
+# 🔊 Audio
+pipewire
+pipewire-alsa
+pipewire-pulse
+pipewire-jack
+wireplumber
+
+# 🌐 Network
+networkmanager
+network-manager-applet
+
+# 🔔 Notifications
+dunst
+libnotify
+
+# 🔤 Fonts
+ttf-font-awesome
+ttf-dejavu
+noto-fonts
+noto-fonts-emoji
+
+# 📂 File manager
+thunar
+thunar-archive-plugin
+file-roller
+
+# 📸 Screenshot and clipboard
+grim
+slurp
+wl-clipboard
+
+# 🚀 Launcher
+wofi
